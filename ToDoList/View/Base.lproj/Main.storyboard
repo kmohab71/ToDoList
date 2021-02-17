@@ -79,6 +79,12 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" title="Items" id="8Bi-bB-8E2">
+                        <barButtonItem key="leftBarButtonItem" style="plain" systemItem="done" id="0ww-zB-yrl">
+                            <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <connections>
+                                <action selector="DoneBtnPressed:" destination="pe2-Q5-Z0Q" id="eve-u3-Jmb"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="Bze-eo-bee">
                             <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <connections>

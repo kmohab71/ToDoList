@@ -97,6 +97,9 @@ class ToDoViewController: UITableViewController {
             }
             self.tableView.reloadData()
     }
+    @IBAction func DoneBtnPressed(_ sender: UIBarButtonItem) {
+        self.navigationController?.popViewController(animated: true)
+    }
 }
 
 //MARK: - Search bar methods
