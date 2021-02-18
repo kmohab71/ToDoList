@@ -86,8 +86,13 @@ class ToDoViewController: UITableViewController {
         self.tableView.reloadData()
 
      }
-    func loadItems() {
-        items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).sorted(byKeyPath: "title", ascending: true)
+    func loadItems(with keyword:String? = nil) {
+        if let word = keyword{
+            items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).filter("title CONTAINS [cd] %@", word).sorted(byKeyPath: "title", ascending: true)
+        }else{
+            items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).sorted(byKeyPath: "title", ascending: true)
+        }
+        
         
         self.tableView.reloadData()
     }
@@ -98,34 +103,32 @@ class ToDoViewController: UITableViewController {
 }
 
 //MARK: - Search bar methods
-//extension ToDoViewController: UISearchBarDelegate{
-//    func search(text:String){
-//        let request : NSFetchRequest<Item> = Item.fetchRequest()
-//        request.predicate = NSPredicate(format: "title CONTAINS [cd] %@", text)
-//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-//        loadItems(with: request)
-//    }
-//
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        if let safetext = searchBar.text{
-//            if safetext != "" {
-//                search(text: safetext)
-//            }
-//        }
-//    }
-//
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        if searchBar.text?.count == 0{
-//            loadItems()
-//            DispatchQueue.main.async {
-//                searchBar.resignFirstResponder()
-//            }
-//        }else{
-//            if let safetext = searchBar.text{
-//                if safetext != "" {
-//                    search(text: safetext)
-//                }
-//            }
-//        }
-//    }
-//}
+extension ToDoViewController: UISearchBarDelegate{
+    func search(text:String){
+        loadItems(with: text)
+        
+    }
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        if let safetext = searchBar.text{
+            if safetext != "" {
+                search(text: safetext)
+            }
+        }
+    }
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0{
+            loadItems()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }else{
+            if let safetext = searchBar.text{
+                if safetext != "" {
+                    search(text: safetext)
+                }
+            }
+        }
+    }
+}
