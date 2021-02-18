@@ -6,13 +6,13 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class ToDoViewController: UITableViewController {
     
-    var items = [Item]()
-    
-    let contex = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var items : Results<Item>!
+    let realm = try! Realm()
+
     var selectedCategory:Category?{
         didSet{
             loadItems()
@@ -42,9 +42,11 @@ class ToDoViewController: UITableViewController {
     }
     //MARK: - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        items[indexPath.row].done = !items[indexPath.row].done
-        saveItems()
+        try! realm.write {
+                items[indexPath.row].done = !items[indexPath.row].done
+            }
         tableView.deselectRow(at: indexPath, animated: true)
+        self.tableView.reloadData()
     }
     //MARK: - Add new Items
     
@@ -54,12 +56,10 @@ class ToDoViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             if let safetext = textField.text{
                 if safetext != "" {
-                    let tempItem = Item(context: self.contex)
+                    let tempItem = Item()
                     tempItem.title = safetext
                     tempItem.done = false
-                    tempItem.category = self.selectedCategory
-                    self.items.append(tempItem)
-                    self.saveItems()
+                    self.saveItems(item: tempItem)
                 }
             }
             
@@ -72,65 +72,60 @@ class ToDoViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    func saveItems(){
-        do {
-            try contex.save()
-        } catch {
-            print("Error encoding item array \(error)")
-        }
+    func saveItems(item:Item){
+         do {
+            try realm.write({
+                realm.add(item)
+                self.selectedCategory?.items.append(item)
+            })
+         } catch {
+             print("Error encoding item array \(error)")
+         }
+         
+//         loadItems()
+        self.tableView.reloadData()
+
+     }
+    func loadItems() {
+        items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).sorted(byKeyPath: "title", ascending: true)
         
         self.tableView.reloadData()
     }
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
-            do {
-                if let pred = request.predicate{
-                    let predicate1 = NSPredicate(format: "category.name MATCHES %@", self.selectedCategory!.name! as NSString)
-                    let predicateCompound = NSCompoundPredicate.init(type: .and, subpredicates: [pred,predicate1])
-                    request.predicate = predicateCompound
-                }
-                else{
-                    request.predicate = NSPredicate(format: "category.name MATCHES %@", self.selectedCategory!.name! as NSString)
-                }
-                items = try contex.fetch(request)
-            } catch {
-                print("Error decoding item array \(error)")
-            }
-            self.tableView.reloadData()
-    }
+
     @IBAction func DoneBtnPressed(_ sender: UIBarButtonItem) {
         self.navigationController?.popViewController(animated: true)
     }
 }
 
 //MARK: - Search bar methods
-extension ToDoViewController: UISearchBarDelegate{
-    func search(text:String){
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
-        request.predicate = NSPredicate(format: "title CONTAINS [cd] %@", text)
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadItems(with: request)
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        if let safetext = searchBar.text{
-            if safetext != "" {
-                search(text: safetext)
-            }
-        }
-    }
-    
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchBar.text?.count == 0{
-            loadItems()
-            DispatchQueue.main.async {
-                searchBar.resignFirstResponder()
-            }
-        }else{
-            if let safetext = searchBar.text{
-                if safetext != "" {
-                    search(text: safetext)
-                }
-            }
-        }
-    }
-}
+//extension ToDoViewController: UISearchBarDelegate{
+//    func search(text:String){
+//        let request : NSFetchRequest<Item> = Item.fetchRequest()
+//        request.predicate = NSPredicate(format: "title CONTAINS [cd] %@", text)
+//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+//        loadItems(with: request)
+//    }
+//
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//        if let safetext = searchBar.text{
+//            if safetext != "" {
+//                search(text: safetext)
+//            }
+//        }
+//    }
+//
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        if searchBar.text?.count == 0{
+//            loadItems()
+//            DispatchQueue.main.async {
+//                searchBar.resignFirstResponder()
+//            }
+//        }else{
+//            if let safetext = searchBar.text{
+//                if safetext != "" {
+//                    search(text: safetext)
+//                }
+//            }
+//        }
+//    }
+//}

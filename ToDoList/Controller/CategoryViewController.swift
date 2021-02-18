@@ -6,16 +6,16 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
-    var items = [Category]()
-    
-    let contex = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var items : Results<Category>!
+    let realm = try! Realm()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         loadItems()
+        
     }
 
     //MARK: - TableView DataSource Methods
@@ -55,10 +55,9 @@ class CategoryViewController: UITableViewController {
                      let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
                          if let safetext = textField.text{
                              if safetext != "" {
-                                 let tempItem = Category(context: self.contex)
+                                 let tempItem = Category()
                                  tempItem.name = safetext
-                                 self.items.append(tempItem)
-                                 self.saveItems()
+                                self.saveItems(category: tempItem)
                              }
                          }
             
@@ -72,23 +71,22 @@ class CategoryViewController: UITableViewController {
         }
 
      
-     func saveItems(){
+    func saveItems(category:Category){
          do {
-             try contex.save()
+            try realm.write({
+                realm.add(category)
+            })
          } catch {
              print("Error encoding item array \(error)")
          }
          
          loadItems()
+//         self.tableView.reloadData()
+
      }
-     func loadItems(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-             do {
-                request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true, selector: #selector(NSString.caseInsensitiveCompare))]
-                items = try contex.fetch(request)
-             } catch {
-                 print("Error decoding item array \(error)")
-             }
-             self.tableView.reloadData()
+     func loadItems() {
+        items = realm.objects(Category.self).sorted(byKeyPath: "name", ascending: true)
+        self.tableView.reloadData()
      }
 
     
