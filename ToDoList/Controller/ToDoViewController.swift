@@ -88,9 +88,9 @@ class ToDoViewController: UITableViewController {
      }
     func loadItems(with keyword:String? = nil) {
         if let word = keyword{
-            items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).filter("title CONTAINS [cd] %@", word).sorted(byKeyPath: "title", ascending: true)
+            items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).filter("title CONTAINS [cd] %@", word).sorted(byKeyPath: "dateCreated", ascending: true)
         }else{
-            items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).sorted(byKeyPath: "title", ascending: true)
+            items = realm.objects(Item.self).filter("%@ IN category", selectedCategory!).sorted(byKeyPath: "dateCreated", ascending: false)
         }
         
         

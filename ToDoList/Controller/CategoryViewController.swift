@@ -7,6 +7,7 @@
 
 import UIKit
 import RealmSwift
+import SwipeCellKit
 
 class CategoryViewController: UITableViewController {
     var items : Results<Category>!
@@ -14,6 +15,7 @@ class CategoryViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print(realm.configuration.fileURL!)
         loadItems()
         
     }
@@ -24,20 +26,16 @@ class CategoryViewController: UITableViewController {
      }
      override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // Ask for a cell of the appropriate type.
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as UITableViewCell
-             
-        // Configure the cell’s contents with the row and section number.
-        // The Basic cell style guarantees a label view is present in textLabel.
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
         cell.textLabel?.text = items[indexPath.row].name
-         
+        cell.delegate = self
         return cell
      }
      //MARK: - TableView Delegate Methods
      override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//         saveItems()
-//         tableView.deselectRow(at: indexPath, animated: true)
         performSegue(withIdentifier: "GoToItems", sender: self)
      }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let destinationVC = segue.destination as! ToDoViewController
         
@@ -90,4 +88,27 @@ class CategoryViewController: UITableViewController {
      }
 
     
+}
+
+extension CategoryViewController: SwipeTableViewCellDelegate{
+    
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
+        guard orientation == .right else { return nil }
+
+        let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
+            let result = self.items[indexPath.row]
+            try! self.realm.write {
+                self.realm.delete(result)
+            }
+//            self.loadItems()
+        }
+
+        return [deleteAction]
+    }
+    
+    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
+        var options = SwipeOptions()
+        options.expansionStyle = .destructive
+        return options
+    }
 }
