@@ -7,8 +7,10 @@
 
 import UIKit
 import RealmSwift
+import SwipeCellKit
+import ChameleonFramework
 
-class ToDoViewController: UITableViewController {
+class ToDoViewController: SwipableClass {
     
     var items : Results<Item>!
     let realm = try! Realm()
@@ -29,16 +31,20 @@ class ToDoViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
+
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
        // Ask for a cell of the appropriate type.
-       let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath) as UITableViewCell
-            
-       // Configure the cell’s contents with the row and section number.
-       // The Basic cell style guarantees a label view is present in textLabel.
+//        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath) as! SwipeTableViewCell
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = items[indexPath.row].title
         cell.accessoryType = items[indexPath.row].done ? .checkmark : .none
-        
-       return cell
+        let perc = CGFloat(indexPath.row)/CGFloat(items.count)
+        if let color = UIColor(hexString: selectedCategory!.color)?.darken(byPercentage: perc){
+            cell.backgroundColor = color
+            cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+        }
+        return cell
     }
     //MARK: - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -99,6 +105,21 @@ class ToDoViewController: UITableViewController {
 
     @IBAction func DoneBtnPressed(_ sender: UIBarButtonItem) {
         self.navigationController?.popViewController(animated: true)
+    }
+    
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let result = self.items?[indexPath.row]{
+            do {
+                try self.realm.write {
+                    self.realm.delete(result)
+                }
+            } catch {
+                print("Error in saving\(error)")
+            }
+           
+            
+        }
     }
 }
 

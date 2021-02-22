@@ -8,14 +8,14 @@
 import UIKit
 import RealmSwift
 import SwipeCellKit
+import ChameleonFramework
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipableClass {
     var items : Results<Category>!
     let realm = try! Realm()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(realm.configuration.fileURL!)
         loadItems()
         
     }
@@ -24,11 +24,12 @@ class CategoryViewController: UITableViewController {
      override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
          return items.count
      }
+    
      override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // Ask for a cell of the appropriate type.
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = items[indexPath.row].name
-        cell.delegate = self
+        cell.backgroundColor = UIColor(hexString: items[indexPath.row].color)
         return cell
      }
      //MARK: - TableView Delegate Methods
@@ -86,29 +87,41 @@ class CategoryViewController: UITableViewController {
         items = realm.objects(Category.self).sorted(byKeyPath: "name", ascending: true)
         self.tableView.reloadData()
      }
-
     
-}
-
-extension CategoryViewController: SwipeTableViewCellDelegate{
-    
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
-        guard orientation == .right else { return nil }
-
-        let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
-            let result = self.items[indexPath.row]
-            try! self.realm.write {
-                self.realm.delete(result)
+    override func updateModel(at indexPath: IndexPath) {
+        if let result = self.items?[indexPath.row]{
+            do {
+                try self.realm.write {
+                    self.realm.delete(result)
+                }
+            } catch {
+                print("Error in saving\(error)")
             }
-//            self.loadItems()
+           
+            
         }
-
-        return [deleteAction]
     }
     
-    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
-        var options = SwipeOptions()
-        options.expansionStyle = .destructive
-        return options
-    }
 }
+
+//extension CategoryViewController: SwipeTableViewCellDelegate{
+//
+//    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
+//        guard orientation == .right else { return nil }
+//
+//        let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
+//            let result = self.items[indexPath.row]
+//            try! self.realm.write {
+//                self.realm.delete(result)
+//            }
+//        }
+//
+//        return [deleteAction]
+//    }
+//
+//    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
+//        var options = SwipeOptions()
+//        options.expansionStyle = .destructive
+//        return options
+//    }
+//}
