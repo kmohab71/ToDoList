@@ -20,11 +20,26 @@ class ToDoViewController: SwipableClass {
             loadItems()
         }
     }
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         // Do any additional setup after loading the view.
       
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        guard let navBar = navigationController?.navigationBar else {
+            fatalError("navbar is nill")
+        }
+        if let backgroundColor = selectedCategory?.color{
+            navBar.barTintColor = UIColor(hexString: backgroundColor)
+            navBar.tintColor = ContrastColorOf(UIColor(hexString: backgroundColor)!, returnFlat: true)
+            navBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(UIColor(hexString: backgroundColor)!, returnFlat: true)]
+            searchBar.barTintColor = UIColor(hexString: backgroundColor)
+            searchBar.tintColor = ContrastColorOf(UIColor(hexString: backgroundColor)!, returnFlat: true)
+            
+        }
+
     }
     
    //MARK: - TableView DataSource Methods

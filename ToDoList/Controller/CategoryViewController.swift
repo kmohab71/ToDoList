@@ -19,17 +19,31 @@ class CategoryViewController: SwipableClass {
         loadItems()
         
     }
+    override func viewWillAppear(_ animated: Bool) {
+        guard let navBar = navigationController?.navigationBar else {
+            fatalError("navbar is nill")
+        }
+        if let backgroundColor = UIColor(hexString: "1D98F6"){
+            navBar.barTintColor = backgroundColor
+            navBar.tintColor = ContrastColorOf(backgroundColor, returnFlat: true)
+            navBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(backgroundColor, returnFlat: true)]
+           
+            
+        }
+    }
 
     //MARK: - TableView DataSource Methods
      override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
          return items.count
      }
     
+    
      override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // Ask for a cell of the appropriate type.
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = items[indexPath.row].name
         cell.backgroundColor = UIColor(hexString: items[indexPath.row].color)
+        cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
         return cell
      }
      //MARK: - TableView Delegate Methods
